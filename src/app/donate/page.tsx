@@ -14,6 +14,7 @@ import { initiativeFactoryABI, initiativeStorageABI } from "src/utils/abi";
 import { useAccount, useReadContracts, useWriteContract } from "wagmi";
 import { formatEther, parseEther } from "ethers";
 import { useModal } from "src/components/Modal/Modalcontext";
+import { parseError } from "src/utils/errors";
 
 interface Item {
     title?: string;
@@ -249,7 +250,10 @@ function Donate() {
                 return;
             }
         } catch (error) {
-            
+            setMessage(`ERROR: ${parseError(error)}`);
+            // }
+            setIcon("no");
+            setIsShown(true);
         }
     };
 
