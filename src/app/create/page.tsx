@@ -95,7 +95,7 @@ const CreateInitiative = () => {
             if (error.response) {
                 setMessage(`ERROR: ${parseError(error.response.data.message)}`);
             } else {
-                setMessage(`ERROR: ${error}`);
+                setMessage(`ERROR: ${parseError(error)}`);
             }
             setIcon("no");
             setIsShown(true);
