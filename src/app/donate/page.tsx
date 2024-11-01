@@ -248,7 +248,9 @@ function Donate() {
                 setIsShown(true);
                 return;
             }
-        } catch (error) {}
+        } catch (error) {
+            
+        }
     };
 
     const openModal = (item: any) => {

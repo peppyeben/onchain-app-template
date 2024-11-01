@@ -78,7 +78,7 @@ const CreateInitiative = () => {
                 functionName: "createInititive",
                 args: [BigInt(goalInWei), `0x${response.data.result}`],
             });
-            console.log(result)
+            console.log(result);
 
             if (result) {
                 setIsLoading(false);
@@ -92,7 +92,11 @@ const CreateInitiative = () => {
 
             console.log(response);
         } catch (error: any) {
-            setMessage(`ERROR: ${parseError(error.response.data.message)}`);
+            if (error.response) {
+                setMessage(`ERROR: ${parseError(error.response.data.message)}`);
+            } else {
+                setMessage(`ERROR: ${error}`);
+            }
             setIcon("no");
             setIsShown(true);
             // // console.log(error.response.data.message);
