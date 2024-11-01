@@ -11,8 +11,9 @@ import InitiativeCard from "src/components/InitiativeCard";
 import axios from "axios";
 import { useLoader } from "src/components/Loader/Loadercontext";
 import { initiativeFactoryABI, initiativeStorageABI } from "src/utils/abi";
-import { useAccount, useReadContracts } from "wagmi";
-import { formatEther } from "ethers";
+import { useAccount, useReadContracts, useWriteContract } from "wagmi";
+import { formatEther, parseEther } from "ethers";
+import { useModal } from "src/components/Modal/Modalcontext";
 
 interface Item {
     title?: string;
@@ -24,8 +25,11 @@ interface Item {
 }
 
 function Donate() {
-    const { setIsLoading } = useLoader();
     const account = useAccount();
+    const { writeContractAsync } = useWriteContract();
+
+    const { setIcon, setIsShown, setMessage } = useModal();
+    const { setIsLoading } = useLoader();
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState<Item | null>(null);
@@ -35,6 +39,20 @@ function Donate() {
     const [storageAddresses, setstorageAddresses] = useState<string[]>([]);
 
     const [exploreResults, setCombinedResults] = useState<[]>([]);
+
+    const [funding, setFunding] = useState("");
+
+    const handleFundingChange = (event: any) => {
+        const inputValue = event.target.value;
+
+        const isValid = /^\d+(\.\d+)?$/.test(inputValue);
+
+        if (isValid) {
+            setFunding(inputValue);
+        } else {
+            console.error("Invalid input");
+        }
+    };
 
     const items = [
         {
@@ -171,24 +189,18 @@ function Donate() {
             );
 
             filteredContractResults.flatMap((result: any) => {
-                // Convert the id to string for comparison
                 const campaignId = result.result.initiativeMetadata.toString();
 
-                // Find the corresponding campaign based on the id
                 const campaign: any = itemsFromAPI?.find(
                     (c: any) => c.id === String(campaignId).substring(2),
                 );
 
-                // If a matching campaign is found, return the combined data
                 if (campaign) {
                     const id = String(campaignId).substring(2);
 
-                    // Check if the ID has already been seen
                     if (!seenIds.has(id)) {
-                        // Mark this ID as seen
                         seenIds.add(id);
 
-                        // Add the combined data to the results
                         combinedResults.push({
                             goal: result.result.initiativeGoal,
                             initiativeAmountRaised:
@@ -197,6 +209,7 @@ function Donate() {
                             description: campaign.description,
                             id: id,
                             initiativeFounder: result.result.initiativeFounder,
+                            initiativeAddress: result.result.initiativeAddress,
                         });
                     }
                 }
@@ -205,6 +218,38 @@ function Donate() {
             setCombinedResults(combinedResults);
         }
     }, [storageContractResults]);
+
+    const supportInitiative = async (
+        e: React.FormEvent<HTMLFormElement>,
+        initiative: any,
+    ) => {
+        e.preventDefault();
+        console.log(initiative);
+        setIsLoading(true);
+
+        try {
+            const result = await writeContractAsync({
+                abi: initiativeStorageABI,
+                address: `0x${String(initiative.initiativeAddress).substring(
+                    2,
+                )}`,
+                account: account.address,
+                functionName: "supportInitiative",
+                value: parseEther(funding),
+            });
+            console.log(result);
+
+            if (result) {
+                setIsLoading(false);
+                setIcon("yes");
+                setMessage(
+                    "Initiative creation successful. View on profile page",
+                );
+                setIsShown(true);
+                return;
+            }
+        } catch (error) {}
+    };
 
     const openModal = (item: any) => {
         setSelectedItem(item);
@@ -274,14 +319,19 @@ function Donate() {
                                 {selectedItem.description}
                             </p>
 
-                            <form className="flex flex-col space-y-3">
+                            <form
+                                onSubmit={(e) =>
+                                    supportInitiative(e, selectedItem)
+                                }
+                                className="flex flex-col space-y-3"
+                            >
                                 <input
                                     type="number"
                                     id="funding"
                                     name="goal"
                                     placeholder="0.01"
-                                    // value={funding}
-                                    // onChange={handleFundingChange}
+                                    value={funding}
+                                    onChange={handleFundingChange}
                                     required
                                     className="w-3/5 md:w-2/5 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                                 />

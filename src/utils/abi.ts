@@ -219,6 +219,11 @@ export const initiativeStorageABI = [
                         name: "initiativeMetadata",
                         type: "bytes",
                     },
+                    {
+                        internalType: "address",
+                        name: "initiativeAddress",
+                        type: "address",
+                    },
                 ],
                 internalType: "struct Initiative_Initiative.Initiative",
                 name: "",

@@ -19,13 +19,11 @@ const CreateInitiative = () => {
     const handleFundingChange = (event: any) => {
         const inputValue = event.target.value;
 
-        // Validate the input here, e.g., using a regular expression
         const isValid = /^\d+(\.\d+)?$/.test(inputValue);
 
         if (isValid) {
             setFunding(inputValue);
         } else {
-            // Handle invalid input, e.g., display an error message
             console.error("Invalid input");
         }
     };
